@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tatkal Ticket Form</title>
+    <style>
+      /* Additional styles to enhance the UI */
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 4px;
+        color: white;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      .notification.success {
+        background-color: #4caf50;
+      }
+
+      .notification.error {
+        background-color: #f44336;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .bookings-list {
+        margin-top: 40px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .booking-card {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: relative;
+        transition: transform 0.2s ease;
+      }
+
+      .booking-card:hover {
+        transform: translateY(-2px);
+      }
+
+      .status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .status.pending {
+        background: #ffd700;
+        color: #000;
+      }
+
+      .status.confirmed {
+        background: #4caf50;
+        color: white;
+      }
+
+      .status.cancelled {
+        background: #f44336;
+        color: white;
+      }
+
+      .booking-details h3 {
+        margin: 0 0 10px 0;
+        color: #333;
+      }
+
+      .booking-details p {
+        margin: 5px 0;
+        color: #666;
+      }
+
+      /* Form enhancements */
+      .form-section {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+
+      .search-button {
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        color: white;
+        font-weight: bold;
+        transition: transform 0.2s ease;
+      }
+
+      .search-button:hover {
+        transform: scale(1.05);
+        background: linear-gradient(135deg, #ff8e8e, #ff6b6b);
+      }
+
+      /* Responsive table enhancements */
+      @media (max-width: 768px) {
+        .bookings-list {
+          grid-template-columns: 1fr;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+      }
+
+      /* General styling */
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #28a833;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 20px auto;
+        background: #c081eb;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1,
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .form-section {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      label {
+        font-weight: bold;
+      }
+
+      input[type="text"],
+      input[type="date"],
+      input[type="number"],
+      select,
+      input[type="file"] {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #f15959;
+        border-radius: 4px;
+      }
+
+      .quota-options {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+
+      table th,
+      table td {
+        border: 1px solid #6fe70c;
+        padding: 10px;
+        text-align: center;
+      }
+
+      .button-section {
+        text-align: center;
+      }
+
+      .search-button {
+        background-color: pink;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      input[type="file"] {
+        padding: 5px;
+        border: 1px solid #1b1a1a;
+        border-radius: 4px;
+        width: 100%;
+      }
+
+      .search-button:hover {
+        background-color: #ffcccc;
+      }
+
+      /* Media Queries for Responsiveness */
+      @media (max-width: 768px) {
+        .form-section {
+          grid-template-columns: repeat(
+            2,
+            1fr
+          ); /* Adjust form to 2 columns on mobile */
+        }
+
+        .quota-options {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        table th,
+        table td {
+          padding: 5px;
+          font-size: 12px;
+        }
+
+        .button-section {
+          margin-top: 20px;
+        }
+
+        .search-button {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 480px) {
+        h1,
+        h2 {
+          font-size: 18px; /* Reduce font size on small screens */
+        }
+
+        .form-section {
+          grid-template-columns: 1fr; /* Stack form fields in a single column on very small screens */
+        }
+
+        label {
+          font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select {
+          font-size: 14px;
+        }
+
+        .search-button {
+          font-size: 14px;
+          padding: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Tatkal Ticket Form</h1>
+      <form action="#" method="post" enctype="multipart/form-data">
+        <div class="form-section">
+          <label for="from">From:</label>
+          <input type="text" id="from" name="from" />
+
+          <label for="to">To:</label>
+          <input type="text" id="to" name="to" />
+
+          <label for="date">Journey Date:</label>
+          <input type="date" id="date" name="date" />
+
+          <label for="bdg-pt">Bdg Pt:</label>
+          <input type="text" id="bdg-pt" name="bdg-pt" />
+
+          <label for="train-no">Train No:</label>
+          <input type="text" id="train-no" name="train-no" />
+
+          <label for="train-type">Train Name:</label>
+          <input id="train-type" name="train-type">
+            <!-- Add options here -->
+        </input>
+
+          <label for="class">Class:</label>
+          <select id="class" name="class">
+            <option value="sleeper">Sl</option>
+            <option value="ac3">3A</option>
+            <option value="ac2">2A</option>
+            <option value="first-class">1A</option>
+            <option value="first-class">3E</option>
+            <option value="first-class">2E</option>
+            <option value="first-class">2S</option>
+            <option value="first-class">CC</option>
+            <option value="first-class">EC</option>
+          </select>
+
+          <label>Quota:</label>
+          <div class="quota-options">
+            <input
+              type="radio"
+              id="general"
+              name="quota"
+              value="general"
+              checked
+            />
+            <label for="general">General</label>
+
+            <input type="radio" id="tatkal" name="quota" value="tatkal" />
+            <label for="tatkal">Tatkal/Premium Tatkal</label>
+          </div>
+        </div>
+
+        <h2>Passenger Details</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>SNo</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Sex</th>
+              <th>Berth</th>
+              <th>Food</th>
+              <th>Nationality</th>
+              <th>Passport/Govt Id Card No</th>
+              <th>Child</th>
+              <th>Senior</th>
+              <th>Bed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><input type="text" name="name1" /></td>
+              <td><input type="number" name="age1" /></td>
+              <td>
+                <select name="sex1">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </td>
+              <td>
+                <select name="berth1">
+                  <option value="upper">Upper</option>
+                  <option value="middle">Middle</option>
+                  <option value="lower">Lower</option>
+                  <option value="side-upper">Side Upper</option>
+                  <option value="side-lower">Side Lower</option>
+                </select>
+              </td>
+              <td>
+                <select name="food1">
+                  <option value="veg">No Food</option>
+                  <option value="veg">Veg</option>
+                  <option value="non-veg">Non Veg</option>
+                </select>
+              </td>
+              <td>
+                <select name="nationality1">
+                  <option value="indian">Indian</option>
+                  <option value="non-indian">Non-Indian</option>
+                </select>
+              </td>
+              <td><input type="text" name="passport1" /></td>
+              <td><input type="checkbox" name="child1" /></td>
+              <td><input type="checkbox" name="senior1" /></td>
+              <td><input type="checkbox" name="bed1" /></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><input type="text" name="name1" /></td>
+              <td><input type="number" name="age1" /></td>
+              <td>
+                <select name="sex1">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </td>
+              <td>
+                <select name="berth1">
+                  <option value="upper">Upper</option>
+                  <option value="middle">Middle</option>
+                  <option value="lower">Lower</option>
+                  <option value="side-upper">Side Upper</option>
+                  <option value="side-lower">Side Lower</option>
+                </select>
+              </td>
+              <td>
+                <select name="food1">
+                  <option value="veg">No Food</option>
+                  <option value="veg">Veg</option>
+                  <option value="veg">Non Veg</option>
+                </select>
+              </td>
+              <td>
+                <select name="nationality1">
+                  <option value="indian">Indian</option>
+                  <option value="non-indian">Non-Indian</option>
+                </select>
+              </td>
+              <td><input type="text" name="passport1" /></td>
+              <td><input type="checkbox" name="child1" /></td>
+              <td><input type="checkbox" name="senior1" /></td>
+              <td><input type="checkbox" name="bed1" /></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><input type="text" name="name1" /></td>
+              <td><input type="number" name="age1" /></td>
+              <td>
+                <select name="sex1">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </td>
+              <td>
+                <select name="berth1">
+                  <option value="upper">Upper</option>
+                  <option value="middle">Middle</option>
+                  <option value="lower">Lower</option>
+                  <option value="side-upper">Side Upper</option>
+                  <option value="side-lower">Side Lower</option>
+                </select>
+              </td>
+              <td>
+                <select name="food1">
+                  <option value="veg">No Food</option>
+                  <option value="veg">Veg</option>
+                  <option value="veg">Non Veg</option>
+                </select>
+              </td>
+              <td>
+                <select name="nationality1">
+                  <option value="indian">Indian</option>
+                  <option value="non-indian">Non-Indian</option>
+                </select>
+              </td>
+              <td><input type="text" name="passport1" /></td>
+              <td><input type="checkbox" name="child1" /></td>
+              <td><input type="checkbox" name="senior1" /></td>
+              <td><input type="checkbox" name="bed1" /></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><input type="text" name="name1" /></td>
+              <td><input type="number" name="age1" /></td>
+              <td>
+                <select name="sex1">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </td>
+              <td>
+                <select name="berth1">
+                  <option value="upper">Upper</option>
+                  <option value="middle">Middle</option>
+                  <option value="lower">Lower</option>
+                  <option value="side-upper">Side Upper</option>
+                  <option value="side-lower">Side Lower</option>
+                </select>
+              </td>
+              <td>
+                <select name="food1">
+                  <option value="veg">No Food</option>
+                  <option value="veg">Veg</option>
+                  <option value="veg">Non Veg</option>
+                </select>
+              </td>
+              <td>
+                <select name="nationality1">
+                  <option value="indian">Indian</option>
+                  <option value="non-indian">Non-Indian</option>
+                </select>
+              </td>
+              <td><input type="text" name="passport1" /></td>
+              <td><input type="checkbox" name="child1" /></td>
+              <td><input type="checkbox" name="senior1" /></td>
+              <td><input type="checkbox" name="bed1" /></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="form-section">
+          <label for="phone">Phone No:</label>
+          <input type="text" id="phone" name="phone" />
+        </div>
+
+        <div class="form-section">
+          <label for="ep-id">EP ID No:</label>
+          <input type="text" id="ep-id" name="ep-id" />
+        </div>
+
+        <div class="form-section">
+          <label for="payment-utr">Payment UTR/Ref No:</label>
+          <input type="text" id="payment-utr" name="payment-utr" />
+        </div>
+
+        <div class="form-section">
+          <label for="payment-screenshot">Payment Screenshot:</label>
+          <input
+            type="file"
+            id="payment-screenshot"
+            name="payment-screenshot"
+            accept=".pdf,.doc,.docx,.jpg,.png"
+          />
+        </div>
+
+        <div class="button-section">
+          <button type="submit" class="search-button">Submit</button>
+        </div>
+      </form>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
