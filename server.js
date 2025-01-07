@@ -39,7 +39,7 @@ const BookingSchema = new mongoose.Schema({
   journeyDate: { type: Date, required: true },
   bdgPt: { type: String, required: true },
   trainNo: { type: String, required: true },
-  trainType: { type: String, required: true },
+  trainName: { type: String, required: true },
   class: {
     type: String,
     required: true,
@@ -118,40 +118,41 @@ const Booking = mongoose.model("Booking", BookingSchema);
 //   },
 // });
 
-// API Routes
+// 📌 API Routes
+// POST /api/bookings - Create a new booking
 app.post("/api/bookings", async (req, res) => {
   try {
-    let bookingData;
+    const bookingData = req.body;
 
-    // Parse the incoming request body if it's a string
-    if (typeof req.body === "string") {
-      bookingData = JSON.parse(req.body);
-    } else {
-      bookingData = req.body;
+    // Log incoming data
+    console.log("Received bookingData:", bookingData);
+
+    // Validate passengers if provided as a string
+    if (typeof bookingData.passengers === "string") {
+      bookingData.passengers = JSON.parse(bookingData.passengers);
     }
 
-    // Map the payload fields to the schema's field names
+    // Create a new booking
     const booking = new Booking({
       from: bookingData.from,
       to: bookingData.to,
-      journeyDate: new Date(bookingData.date), // Convert date string to a Date object
-      bdgPt: bookingData["bdg-pt"],
-      trainNo: bookingData["train-no"],
-      trainType: bookingData["train-type"],
+      journeyDate: new Date(bookingData.date),
+      bdgPt: bookingData.bdgPt,
+      trainNo: bookingData.trainNo,
+      trainName: bookingData.trainName,
       class: bookingData.class,
       quota: bookingData.quota,
-      passengers: JSON.parse(bookingData.passengers), // Parse the passengers string
+      passengers: bookingData.passengers,
       phone: bookingData.phone,
       epId: bookingData["ep-id"],
       paymentUtr: bookingData["payment-utr"],
-      // paymentScreenshot: req.file ? req.file.filename : undefined,  // Commented out
-      status: "pending", // Default status
-      createdAt: new Date(),
+      status: "pending",
     });
 
-    // Save the booking to the database
+    // Save to the database
     await booking.save();
 
+    // Send a success response
     res.status(201).json({
       success: true,
       booking,
@@ -187,9 +188,9 @@ app.get("/api/bookings", async (req, res) => {
 // 📌 Removed the static file serving for uploads directory
 // app.use("/uploads", express.static("uploads"));
 
-// Error handling middleware
+// Global error handler
 app.use((error, req, res, next) => {
-  console.error(error);
+  console.error("Global error handler:", error);
   res.status(error.status || 500).json({
     success: false,
     error: error.message || "Internal server error",
