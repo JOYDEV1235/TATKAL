@@ -1,19 +1,15 @@
 const API_URL = "/api";
 
+
 document.addEventListener("DOMContentLoaded", () => {
-  // Set minimum date to today
   const dateInput = document.getElementById("date");
   const today = new Date().toISOString().split("T")[0];
   dateInput.min = today;
 
-  // Initialize form
   const form = document.querySelector("form");
   form.addEventListener("submit", handleSubmit);
 
-  // Initialize dynamic passenger rows
   initializePassengerRows();
-
-  // Load existing bookings
   loadBookings();
 });
 
@@ -111,54 +107,68 @@ function addPassengerRow(tbody, index) {
 }
 
 async function handleSubmit(e) {
-    e.preventDefault();
-  
-    try {
-      const formData = new FormData(e.target);
-      const passengers = [];
-  
-      // Collect passenger data
-      const rows = document.querySelectorAll("tbody tr");
-      rows.forEach((row, index) => {
-        const passengerIndex = index + 1;
-        if (row.querySelector(`[name="name${passengerIndex}"]`).value) {
-          const passenger = {
-            name: formData.get(`name${passengerIndex}`),
-            age: parseInt(formData.get(`age${passengerIndex}`)),
-            sex: formData.get(`sex${passengerIndex}`),
-            berth: formData.get(`berth${passengerIndex}`),
-            food: formData.get(`food${passengerIndex}`),
-            nationality: formData.get(`nationality${passengerIndex}`),
-            passportNo: formData.get(`passport${passengerIndex}`),
-            isChild: formData.get(`child${passengerIndex}`) === 'on',
-            isSenior: formData.get(`senior${passengerIndex}`) === 'on',
-            needsBed: formData.get(`bed${passengerIndex}`) === 'on'
-          };
-          passengers.push(passenger);
-        }
-      });
-  
-      // Add passengers array to formData
-      formData.set('passengers', JSON.stringify(passengers));
-      // Make the API call
-      const response = await fetch(`${API_URL}/bookings`, {
-        method: "POST",
-        body: formData // Send formData directly - don't stringify or set Content-Type
-      });
-  
-      const result = await response.json();
-  
-      if (result.success) {
-        showNotification("Booking submitted successfully!", "success");
-        e.target.reset();
-        loadBookings();
-      } else {
-        throw new Error(result.error);
+  e.preventDefault();
+
+  try {
+    const formData = new FormData(e.target);
+    const passengers = [];
+
+    const rows = document.querySelectorAll("tbody tr");
+    rows.forEach((row, index) => {
+      const passengerIndex = index + 1;
+      if (row.querySelector(`[name="name${passengerIndex}"]`).value) {
+        const passenger = {
+          name: formData.get(`name${passengerIndex}`),
+          age: parseInt(formData.get(`age${passengerIndex}`)),
+          sex: formData.get(`sex${passengerIndex}`),
+          berth: formData.get(`berth${passengerIndex}`),
+          food: formData.get(`food${passengerIndex}`),
+          nationality: formData.get(`nationality${passengerIndex}`),
+          passportNo: formData.get(`passport${passengerIndex}`),
+          isChild: formData.get(`child${passengerIndex}`) === 'on',
+          isSenior: formData.get(`senior${passengerIndex}`) === 'on',
+          needsBed: formData.get(`bed${passengerIndex}`) === 'on'
+        };
+        passengers.push(passenger);
       }
-    } catch (error) {
-      showNotification(error.message, "error");
+    });
+
+    const bookingData = {
+      from: formData.get('from'),
+      to: formData.get('to'),
+      date: formData.get('date'),
+      class: formData.get('class'),
+      trainNo: formData.get('train-no'),
+      trainName: formData.get('train-type'),
+      bdgPt: formData.get('bdg-pt'),
+      quota: formData.get('quota'),
+      phone: formData.get('phone'),
+      "ep-id": formData.get('ep-id'),
+      "payment-utr": formData.get('payment-utr'),
+      passengers
+    };
+
+    const response = await fetch(`${API_URL}/bookings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(bookingData)
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showNotification("Booking submitted successfully!", "success");
+      e.target.reset();
+      loadBookings();
+    } else {
+      throw new Error(result.error);
     }
+  } catch (error) {
+    showNotification(error.message, "error");
   }
+}
 
 function showNotification(message, type) {
   const notification = document.createElement("div");
